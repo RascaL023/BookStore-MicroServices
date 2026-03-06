@@ -1,12 +1,13 @@
-
 package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 	"writer/internal/cache"
 	"writer/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -72,6 +73,7 @@ func (r *writerRepository) FindByID(
 	err := r.db.QueryRow(ctx, q, id).
 		Scan(&w.Id, &w.Name, &w.City, &w.Email)
 
+	if errors.Is(err, pgx.ErrNoRows) { return nil, nil }
 	if err != nil { return nil, err }
 	return w, nil
 }

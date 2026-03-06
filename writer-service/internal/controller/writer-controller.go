@@ -15,6 +15,11 @@ func New(s *service.WriterService) *WriterController {
 	return &WriterController{service: s}
 }
 
+func writeResponse(w http.ResponseWriter, response []byte) {
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(response)
+}
+
 
 func (c *WriterController) GetByID(
 	w http.ResponseWriter, 
@@ -25,17 +30,17 @@ func (c *WriterController) GetByID(
 
     if err != nil {
 		fmt.Println("Server err")
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+		dto.ServerError(w, nil)
         return
     } else if writer == nil {
-        http.Error(w, "not found", http.StatusNotFound)
+		dto.WriterNotFoundError(w, nil)
         return
     }
 
     response, _ := json.Marshal(dto.ToResponse(writer))
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
+	writeResponse(w, response)
 }
+
 
 func (c *WriterController) GetByIDs(
 	w http.ResponseWriter,
@@ -45,14 +50,18 @@ func (c *WriterController) GetByIDs(
 	writers, err := c.service.GetByIDs(r.Context(), ids)
 	if err != nil {
 		fmt.Println("Server err")
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+		dto.ServerError(w, nil)
+        return
+	} else if writers == nil {
+		fmt.Println("Not found")
+		dto.WriterNotFoundError(w, nil)
         return
 	}
 
 	responses, _ := json.Marshal(dto.ToResponses(writers))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(responses)
+	writeResponse(w, responses)
 }
+
 
 func (c *WriterController) GetAll(
 	responseWriter http.ResponseWriter,
@@ -83,14 +92,13 @@ func (c *WriterController) GetAll(
 	}
 
 	if err != nil {
-		http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
+		dto.ServerError(responseWriter, nil)
 		return
 	}
 
 	response := dto.NewPagedResponse(dto.ToResponses(writers), meta)
 	responses, _ := json.Marshal(response)
-	responseWriter.Header().Set("Content-Type", "application/json")
-	responseWriter.Write(responses)
+	writeResponse(responseWriter, responses)
 }
 
 
