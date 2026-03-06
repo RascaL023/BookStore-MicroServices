@@ -8,6 +8,7 @@ import (
 type WriterRepository interface {
 	 Save(context.Context, model.Writer) (*model.Writer, error)
 	 FindByID(context.Context, int64) (*model.Writer, error)
+	 FindByIDs(context.Context, []int64) ([]*model.Writer, error)
 	 FindAll(context.Context, int64, int64) ([]*model.Writer, error)
 	 FindByName(
 		context.Context, 

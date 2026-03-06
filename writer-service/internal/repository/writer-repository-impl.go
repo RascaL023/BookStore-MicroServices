@@ -76,6 +76,39 @@ func (r *writerRepository) FindByID(
 	return w, nil
 }
 
+func (r *writerRepository) FindByIDs(
+	ctx context.Context,
+	ids []int64,
+) ([]*model.Writer, error) {
+	if len(ids) == 0 { return []*model.Writer{}, nil }
+	q := `
+		SELECT id, name, city, email, is_active 
+		FROM writers WHERE id = ANY($1)
+	`
+
+	rows, err := r.db.Query(ctx, q, ids)
+	if err != nil { return nil, err }
+	defer rows.Close()
+
+	var writers []*model.Writer
+	for rows.Next() {
+		var writer model.Writer
+		err := rows.Scan(
+			&writer.Id,
+			&writer.Name,
+			&writer.City,
+			&writer.Email,
+			&writer.IsActive,
+		)
+
+		if err != nil { return nil, err }
+		writers = append(writers, &writer)
+	}
+
+	if err := rows.Err(); err != nil { return  nil, err }
+	return writers, nil
+}
+
 func (r *writerRepository) FindAll(
 	ctx context.Context,
 	offset, size int64,

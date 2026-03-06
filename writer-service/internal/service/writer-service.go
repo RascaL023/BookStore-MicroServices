@@ -77,6 +77,14 @@ func (s *WriterService) GetByID(
 }
 
 
+func (s *WriterService) GetByIDs(
+	ctx context.Context,
+	ids []int64,
+) ([]*model.Writer, error) {
+	return s.repo.FindByIDs(ctx, ids)
+}
+
+
 func (s *WriterService) GetAll(
 	ctx context.Context,
 	page, size int64,

@@ -12,6 +12,7 @@ func RegisterRoutes(
     r.Route("/writers", func(r chi.Router) {
 		r.Get("/", writerCtrl.GetAll)
 		r.Get("/{id}", writerCtrl.GetByID)
+		r.Get("/health", writerCtrl.CheckHealth)
 
 		r.Post("/", writerCtrl.Upsert)
 

@@ -1,0 +1,10 @@
+{
+  "service": {
+    "name": "writers",
+    "port": 8085,
+    "check": {
+      "http": "http://localhost:8085/writers/health",
+      "interval": "60s"
+    }
+  }
+}

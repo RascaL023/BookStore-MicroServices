@@ -37,6 +37,23 @@ func (c *WriterController) GetByID(
     w.Write(response)
 }
 
+func (c *WriterController) GetByIDs(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	ids := resolveIDs(r, w)
+	writers, err := c.service.GetByIDs(r.Context(), ids)
+	if err != nil {
+		fmt.Println("Server err")
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+	}
+
+	responses, _ := json.Marshal(dto.ToResponses(writers))
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responses)
+}
+
 func (c *WriterController) GetAll(
 	responseWriter http.ResponseWriter,
 	httpRequest *http.Request,
@@ -47,17 +64,24 @@ func (c *WriterController) GetAll(
 	var err error
 	var writers []*model.Writer
 	var meta *dto.Meta
-	if name == "" {
-		writers, meta, err = c.service.GetAll(
-			httpRequest.Context(),
-			page, size,
-		)
-	} else {
+	if name != "" {
 		writers, meta, err = c.service.GetByName(
 			httpRequest.Context(),
 			name, page, size,
 		)
+	} else {
+		ids := httpRequest.URL.Query().Get("ids")
+		if ids != "" {
+			c.GetByIDs(responseWriter, httpRequest)
+			return
+		} else {
+			writers, meta, err = c.service.GetAll(
+				httpRequest.Context(),
+				page, size,
+			)
+		}
 	}
+
 	if err != nil {
 		http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
 		return
@@ -113,4 +137,13 @@ func (c *WriterController) PatchUpdate(
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dto.ToResponse(writer))
+}
+
+
+func (c *WriterController) CheckHealth(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
